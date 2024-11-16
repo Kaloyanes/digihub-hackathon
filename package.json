@@ -36,6 +36,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-native": "0.74.3",
+    "react-native-config": "^1.5.3",
     "react-native-edge-to-edge": "^1.1.2",
     "react-native-haptic-feedback": "^2.3.3",
     "react-native-keyboard-controller": "^1.14.4",
