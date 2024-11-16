@@ -1,8 +1,8 @@
 import { useRouter } from "expo-router";
-import { LoaderCircle } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 import { type User, getCurrentUser } from "~/lib/db/users";
+import { Loader2 } from "~/lib/icons/Loader2";
 import { UserIcon } from "~/lib/icons/User";
 import { cn } from "~/lib/utils";
 
@@ -14,15 +14,16 @@ export default function ProfileUser() {
 	useEffect(() => {
 		getCurrentUser().then((user) => {
 			setUser(user);
+			setLoading(false);
 		});
-	});
+	}, []);
 
 	const router = useRouter();
 
 	if (loading)
 		return (
-			<View className="aspect-square animate-spin bg-blue-300">
-				<LoaderCircle className="text-blue-500" size={24} strokeWidth={1.25} />
+			<View className="animate-spin items-center justify-center ">
+				<Loader2 className="text-foreground" size={24} strokeWidth={1.25} />
 			</View>
 		);
 

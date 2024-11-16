@@ -59,7 +59,7 @@ export default function RootLayout() {
 	}
 
 	return (
-		<KeyboardProvider navigationBarTranslucent statusBarTranslucent>
+		<KeyboardProvider>
 			<ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
 				<View className="bg-background " style={{ flex: 1 }}>
 					<Stack
