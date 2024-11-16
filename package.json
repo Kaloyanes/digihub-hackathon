@@ -24,10 +24,11 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "expo": "^51.0.24",
+    "expo-font": "~12.0.10",
     "expo-linking": "~6.3.1",
     "expo-navigation-bar": "~3.0.7",
     "expo-router": "~3.5.20",
-    "expo-splash-screen": "~0.27.5",
+    "expo-splash-screen": "~0.27.7",
     "expo-status-bar": "~1.12.1",
     "expo-system-ui": "~3.0.7",
     "firebase": "^11.0.2",
@@ -47,12 +48,14 @@
     "tailwind-merge": "^2.2.1",
     "tailwindcss": "3.3.5",
     "tailwindcss-animate": "^1.0.7",
-    "zustand": "^4.4.7"
+    "zustand": "^4.4.7",
+    "expo-image-picker": "~15.0.7"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
     "@types/react": "~18.2.79",
     "react-native-dotenv": "^3.4.11",
+    "react-native-svg-transformer": "^1.5.0",
     "typescript": "^5.3.3"
   },
   "private": true

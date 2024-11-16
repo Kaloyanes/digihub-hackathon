@@ -61,7 +61,7 @@ export default function RootLayout() {
 	return (
 		<KeyboardProvider>
 			<ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-				<View className="bg-background " style={{ flex: 1 }}>
+				<View className="bg-background" style={{ flex: 1 }}>
 					<Stack
 						screenOptions={{
 							headerShadowVisible: false,
@@ -81,6 +81,12 @@ export default function RootLayout() {
 						/>
 						<Stack.Screen
 							name="login"
+							options={{
+								title: "",
+							}}
+						/>
+						<Stack.Screen
+							name="register"
 							options={{
 								title: "",
 							}}

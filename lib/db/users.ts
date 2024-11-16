@@ -1,4 +1,9 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword, // Add this import
+  updateEmail,
+} from "firebase/auth";
 import {
   type DocumentData,
   type FirestoreDataConverter,
@@ -7,7 +12,8 @@ import {
   setDoc,
   updateDoc,
 } from "firebase/firestore";
-import { auth, db } from "../firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { auth, db, storage } from "../firebase";
 
 type User = {
   uid: string;
@@ -105,4 +111,51 @@ async function updateCurrentUser(data: Partial<User>) {
   await updateDoc(doc(db, "users", uid).withConverter(userConverter), data);
 }
 
-export { createUser, getCurrentUser, updateCurrentUser, type User };
+async function updateUserProfile(data: { username?: string; email?: string }) {
+  if (!auth.currentUser) return;
+
+  if (data.email) {
+    await updateEmail(auth.currentUser, data.email);
+  }
+
+  await updateCurrentUser(data);
+}
+
+async function uploadProfilePicture(uri: string): Promise<string> {
+  if (!auth.currentUser) throw new Error("No user logged in");
+
+  const response = await fetch(uri);
+  const blob = await response.blob();
+
+  const fileRef = ref(storage, `profilePictures/${auth.currentUser.uid}`);
+
+  await uploadBytes(fileRef, blob);
+  const downloadURL = await getDownloadURL(fileRef);
+
+  await updateCurrentUser({ avatar: downloadURL });
+  return downloadURL;
+}
+
+async function sendPasswordReset(email: string) {
+  await sendPasswordResetEmail(auth, email);
+}
+
+async function loginUser(
+  email: string,
+  password: string,
+): Promise<User | null> {
+  const credentials = await signInWithEmailAndPassword(auth, email, password);
+  const uid = credentials.user.uid;
+  return await getUser(uid);
+}
+
+export {
+  createUser,
+  getCurrentUser,
+  loginUser, // Add this export
+  sendPasswordReset,
+  updateCurrentUser,
+  updateUserProfile,
+  uploadProfilePicture,
+  type User,
+};
