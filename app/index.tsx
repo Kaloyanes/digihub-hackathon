@@ -5,11 +5,9 @@ import { trigger } from "react-native-haptic-feedback";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import { Button } from "~/components/ui/button";
 import { Text } from "~/components/ui/text";
+import { HapticFeedbackOptions } from "~/lib/constants";
 
-const GITHUB_AVATAR_URI =
-	"https://i.pinimg.com/originals/ef/a2/8d/efa28d18a04e7fa40ed49eeb0ab660db.jpg";
-
-export default function Screen() {
+export default function HomeScreen() {
 	const router = useRouter();
 	return (
 		<View className="flex-1 justify-center items-center gap-5 p-6">
@@ -18,7 +16,7 @@ export default function Screen() {
 				<Button
 					onPress={() => {
 						router.push("/login");
-						trigger("impactLight");
+						trigger("keyboardTap", HapticFeedbackOptions);
 					}}
 				>
 					<Text>Press Me</Text>

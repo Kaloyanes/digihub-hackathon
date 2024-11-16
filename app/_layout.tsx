@@ -8,6 +8,7 @@ import * as React from "react";
 import { useEffect } from "react";
 import { Platform, View } from "react-native";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import ProfileUser from "~/components/ProfileUser";
 import { ThemeToggle } from "~/components/ThemeToggle";
 import { NAV_THEME } from "~/lib/constants";
 import { useColorScheme } from "~/lib/useColorScheme";
@@ -58,9 +59,9 @@ export default function RootLayout() {
 	}
 
 	return (
-		<KeyboardProvider>
+		<KeyboardProvider navigationBarTranslucent statusBarTranslucent>
 			<ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-				<View className="bg-background" style={{ flex: 1 }}>
+				<View className="bg-background " style={{ flex: 1 }}>
 					<Stack
 						screenOptions={{
 							headerShadowVisible: false,
@@ -70,7 +71,18 @@ export default function RootLayout() {
 							name="index"
 							options={{
 								title: "",
-								headerRight: () => <ThemeToggle />,
+								headerRight: () => (
+									<View className="flex justify-end flex-row gap-4">
+										<ThemeToggle />
+										<ProfileUser />
+									</View>
+								),
+							}}
+						/>
+						<Stack.Screen
+							name="login"
+							options={{
+								title: "",
 							}}
 						/>
 					</Stack>
