@@ -91,6 +91,18 @@ export default function RootLayout() {
 								title: "",
 							}}
 						/>
+						<Stack.Screen
+							name="play"
+							options={{
+								title: "Play",
+							}}
+						/>
+						<Stack.Screen
+							name="play/select-difficulty"
+							options={{
+								title: "Select Difficulty",
+							}}
+						/>
 					</Stack>
 					<PortalHost />
 				</View>

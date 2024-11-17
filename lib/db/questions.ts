@@ -10,6 +10,7 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "../firebase";
+import { validateAnswer } from "../openai";
 import { getCurrentUser, updateCurrentUser } from "./users";
 
 const difficultyMultipliers: { [id: string]: number } = {
@@ -23,6 +24,7 @@ const AnswerBasePoints = 50;
 type Question = {
   question: string;
   answer: string;
+  possibleAnswers: string[];
   difficulty: string;
 };
 
@@ -32,6 +34,7 @@ const questionConverter: FirestoreDataConverter<Question> = {
       question: question.question,
       answer: question.answer,
       difficuty: question.difficulty,
+      possibleAnswers: question.possibleAnswers,
     };
   },
   fromFirestore: (snapshot, options): Question => {
@@ -40,6 +43,7 @@ const questionConverter: FirestoreDataConverter<Question> = {
       question: data.question,
       answer: data.answer,
       difficulty: data.difficulty,
+      possibleAnswers: data.possibleAnswers,
     };
   },
 };
@@ -66,20 +70,32 @@ async function checkAnswer(
 
   if (docSnapshot.exists()) {
     const question = docSnapshot.data();
-
     const points = timerSecondsLeft * AnswerBasePoints;
     const addedXp = points * difficultyMultipliers[question.difficulty];
 
+    let isCorrect = false;
+    if (question.difficulty === "Basic") {
+      // Use AI validation for basic difficulty
+      isCorrect = await validateAnswer(
+        question.answer,
+        input,
+        question.question,
+      );
+    } else {
+      // Use exact match for other difficulties
+      isCorrect = question.answer === input;
+    }
+
     const user = await getCurrentUser();
-
-    if (user !== null) {
+    if (user !== null && isCorrect) {
       user.xp += addedXp;
-
       await updateCurrentUser(user);
     }
 
-    return question.answer === input;
+    return isCorrect;
   }
 
   return false;
 }
+
+export { checkAnswer, getQuestionsByDifficulty };

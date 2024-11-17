@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import * as React from "react";
 import { View } from "react-native";
 import { trigger } from "react-native-haptic-feedback";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { Button } from "~/components/ui/button";
 import { Text } from "~/components/ui/text";
 import { HapticFeedbackOptions } from "~/lib/constants";
@@ -14,7 +14,6 @@ function HomeScreen() {
 	return (
 		<View className="flex-1  justify-center items-center gap-5 p-6">
 			<AnimatedButton
-				entering={FadeInDown.springify().damping(10)}
 				variant={"outline"}
 				className={"w-1/2"}
 				onPress={() => {
@@ -25,11 +24,10 @@ function HomeScreen() {
 				<Text className="font-[Manrope] font-bold">Learn</Text>
 			</AnimatedButton>
 			<AnimatedButton
-				entering={FadeInDown.springify().damping(10)}
 				variant={"outline"}
 				className={"w-1/2"}
 				onPress={() => {
-					router.push("/login");
+					router.push("/play/select-difficulty");
 					trigger("keyboardTap", HapticFeedbackOptions);
 				}}
 			>

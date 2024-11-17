@@ -1,8 +1,12 @@
 import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from "react";
-import { Alert, Image, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TouchableOpacity, View } from "react-native";
+import { AnimatedCircularProgress } from "react-native-circular-progress";
+import { Easing } from "react-native-reanimated";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { useTheme } from "~/lib/useTheme";
 import type { User } from "../lib/db/users";
 import {
 	getCurrentUser,
@@ -12,6 +16,7 @@ import {
 } from "../lib/db/users";
 
 function ProfileScreen() {
+	const { colors } = useTheme();
 	const [user, setUser] = useState<User | null>(null);
 	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
@@ -76,12 +81,33 @@ function ProfileScreen() {
 
 	return (
 		<View className="flex-1 p-5 items-center bg-background">
-			<TouchableOpacity onPress={handleImagePick} className="mb-5">
-				<Image
-					source={{ uri: user.avatar || "https://placeholder.com/150" }}
-					className="w-[150px] h-[150px] rounded-full bg-muted"
-				/>
-			</TouchableOpacity>
+			<View className="relative mb-5">
+				<AnimatedCircularProgress
+					size={120}
+					width={5}
+					fill={50}
+					delay={300}
+					easing={Easing.inOut(Easing.poly(5))}
+					onAnimationComplete={() => console.log("onAnimationComplete")}
+					tintColor={colors.primary}
+					backgroundColor={colors.background}
+					rotation={0}
+					lineCap="round"
+				>
+					{(fill) => (
+						<Avatar alt="HKDOSA" className="w-full h-full">
+							<TouchableOpacity onPress={handleImagePick}>
+								<AvatarImage
+									source={{ uri: user.avatar || "https://placeholder.com/150" }}
+								/>
+								<AvatarFallback>
+									<Text className="text-primary">+</Text>
+								</AvatarFallback>
+							</TouchableOpacity>
+						</Avatar>
+					)}
+				</AnimatedCircularProgress>
+			</View>
 
 			<Input
 				className="mb-3 w-full"
