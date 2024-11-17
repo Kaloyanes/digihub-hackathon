@@ -1,8 +1,10 @@
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Pressable, TextInput, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { useReanimatedKeyboardAnimation } from "react-native-keyboard-controller";
 import Animated, {
 	Easing,
+	interpolate,
 	runOnJS,
 	useAnimatedStyle,
 	useSharedValue,
@@ -11,6 +13,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { FlashCard } from "~/components/FlashCard";
 import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 import { Text } from "~/components/ui/text";
 import { checkAnswer, getQuestionsByDifficulty } from "~/lib/db/questions";
 
@@ -22,11 +25,37 @@ function PlayPage() {
 	const [questions, setQuestions] = useState<any[]>([]);
 	const [currentQuestion, setCurrentQuestion] = useState(0);
 	const [showConfetti, setShowConfetti] = useState(false);
-	const [timer, setTimer] = useState(60);
+	const [timer, setTimer] = useState(
+		initialDifficulty === "Advanced" ? 120 : 60,
+	);
 	const [gameStarted, setGameStarted] = useState(false);
 	const [isGameOver, setIsGameOver] = useState(false);
 	const [isFlipped, setIsFlipped] = useState(false);
 	const [userAnswer, setUserAnswer] = useState("");
+	const { progress, height } = useReanimatedKeyboardAnimation();
+	const [correctAnswers, setCorrectAnswers] = useState(0);
+	const [incorrectAnswers, setIncorrectAnswers] = useState(0);
+
+	useEffect(() => {
+		if (questions.length > 0) {
+			console.log(
+				"Current question answer:",
+				questions[currentQuestion].data().answer,
+			);
+		}
+	}, [currentQuestion, questions]);
+
+	const animatedKeyboardStyle = useAnimatedStyle(() => ({
+		transform: [
+			{
+				translateY: interpolate(
+					progress.value,
+					[0, 1],
+					[0, height.value * 0.5],
+				),
+			},
+		],
+	}));
 
 	useEffect(() => {
 		if (initialDifficulty) {
@@ -57,10 +86,15 @@ function PlayPage() {
 	}, [gameStarted, timer, isGameOver]);
 
 	const startGame = async (diff: string) => {
+		console.log("Starting game with difficulty:", diff); // Add debug log
 		setDifficulty(diff);
 		setTimer(60);
 		setIsGameOver(false);
-		const fetchedQuestions = await getQuestionsByDifficulty(diff, 5);
+		const fetchedQuestions = await getQuestionsByDifficulty(
+			diff,
+			difficulty === "Advanced" ? 2 : 5,
+		);
+		console.log("Fetched questions:", fetchedQuestions); // Add debug log
 		setQuestions(Array.from(fetchedQuestions));
 		setGameStarted(true);
 	};
@@ -93,11 +127,18 @@ function PlayPage() {
 		);
 
 		if (isCorrect) {
+			runOnJS(setCorrectAnswers)((prev: number) => prev + 1);
 			runOnJS(updateQuestion)();
-			return;
+		} else {
+			runOnJS(setIncorrectAnswers)((prev: number) => prev + 1);
 		}
 
-		runOnJS(setIsGameOver)(true);
+		if (
+			currentQuestion === questions.length - 1 ||
+			(difficulty === "Advanced" && !isCorrect)
+		) {
+			runOnJS(setIsGameOver)(true);
+		}
 	};
 
 	const checkBasicAnswer = async (answer: string) => {
@@ -112,12 +153,18 @@ function PlayPage() {
 		);
 
 		if (isCorrect) {
+			setCorrectAnswers((prev) => prev + 1);
 			setIsFlipped(false);
 			setUserAnswer("");
+			if (currentQuestion === questions.length - 1) {
+				setIsGameOver(true);
+				return;
+			}
 			runOnJS(updateQuestion)();
 			return;
 		}
 
+		setIncorrectAnswers((prev) => prev + 1);
 		runOnJS(setIsGameOver)(true);
 	};
 
@@ -140,6 +187,12 @@ function PlayPage() {
 				<Text className="text-2xl font-bold mb-8 text-foreground">
 					Game Over!
 				</Text>
+				<Text className="text-lg mb-4 text-foreground w-full text-center">
+					Correct Answers: {correctAnswers}
+				</Text>
+				<Text className="text-lg mb-8 text-foreground w-full text-center">
+					Incorrect Answers: {incorrectAnswers}
+				</Text>
 				<Button
 					onPress={() => {
 						router.back();
@@ -151,60 +204,67 @@ function PlayPage() {
 			</View>
 		);
 	}
-
+	const AnimatedButton = Animated.createAnimatedComponent(Button);
 	return (
 		<View className="flex-1 items-center justify-center p-4 bg-background">
-			<Text className="text-xl mb-4 text-foreground px-10 text-center absolute top-4 left-4">
+			<Text className="text-xl mb-4 text-foreground px-10  absolute top-4 w-full text-right">
 				Time: {timer}s
 			</Text>
 
-			{questions.length > 0 &&
-				(difficulty === "advanced" ? (
-					<View className="w-full items-center space-y-4">
-						<FlashCard
-							question={questions[currentQuestion].data().question}
-							onSubmit={checkBasicAnswer}
-							isFlipped={isFlipped}
-							onFlip={() => setIsFlipped(!isFlipped)}
-						/>
-						<TextInput
-							className="w-full max-w-[300px] h-12 px-4 bg-card rounded-lg text-foreground"
-							value={userAnswer}
-							onChangeText={setUserAnswer}
-							placeholder="Type your answer..."
-							placeholderTextColor="#666"
-						/>
-						<Button onPress={() => checkBasicAnswer(userAnswer)}>
-							<Text>Submit Answer</Text>
-						</Button>
-					</View>
-				) : (
-					<>
-						<Text className="text-lg mb-8 text-center text-foreground w-full">
-							{questions[currentQuestion].data().question}
-						</Text>
-						<View className="w-full flex-row flex-wrap justify-center gap-4">
-							{questions[currentQuestion]
-								.data()
-								.possibleAnswers.map((answer: string) => (
-									<Animated.View
-										key={answer}
-										style={[animatedStyle]}
-										className="w-[40%] h-20 rounded-lg justify-center items-center"
-									>
-										<Pressable
-											onPress={() => handleAnswer(answer)}
-											className="flex-1 justify-center w-full rounded-lg"
-										>
-											<Text className="text-base text-center font-medium text-primary-foreground">
-												{answer}
-											</Text>
-										</Pressable>
-									</Animated.View>
-								))}
+			<Animated.View
+				className="flex-1 w-full items-center justify-center"
+				style={animatedKeyboardStyle}
+			>
+				{questions.length > 0 &&
+					(difficulty.toLowerCase() === "advanced" ? (
+						<View className="w-full items-center justify-center gap-4 px-4">
+							<FlashCard
+								question={questions[currentQuestion].data().question}
+								answer={questions[currentQuestion].data().answer}
+								isFlipped={isFlipped}
+								onFlip={() => setIsFlipped(!isFlipped)}
+							/>
+							<Input
+								className="w-full max-w-[300px] h-12 px-4 bg-card rounded-lg text-foreground"
+								value={userAnswer}
+								onChangeText={setUserAnswer}
+								placeholder="Type your answer..."
+								placeholderTextColor="#666"
+							/>
+							{userAnswer.trim().length > 0 && (
+								<AnimatedButton onPress={() => checkBasicAnswer(userAnswer)}>
+									<Text>Check Answer</Text>
+								</AnimatedButton>
+							)}
 						</View>
-					</>
-				))}
+					) : (
+						<>
+							<Text className="text-lg mb-8 text-center text-foreground w-full">
+								{questions[currentQuestion].data().question}
+							</Text>
+							<View className="w-full flex-row flex-wrap justify-center gap-4">
+								{questions[currentQuestion]
+									.data()
+									.possibleAnswers.map((answer: string) => (
+										<Animated.View
+											key={answer}
+											style={[animatedStyle]}
+											className="w-[40%] h-20 rounded-lg justify-center items-center"
+										>
+											<Pressable
+												onPress={() => handleAnswer(answer)}
+												className="flex-1 justify-center w-full rounded-lg"
+											>
+												<Text className="text-base text-center font-medium text-primary-foreground">
+													{answer}
+												</Text>
+											</Pressable>
+										</Animated.View>
+									))}
+							</View>
+						</>
+					))}
+			</Animated.View>
 		</View>
 	);
 }

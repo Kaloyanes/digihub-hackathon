@@ -24,7 +24,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#000"
       },
-      "package": "com.kaloyanes.programingo"
+      "package": "com.kaloyanes.programingo",
     },
     "web": {
       "bundler": "metro",

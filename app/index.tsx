@@ -17,7 +17,7 @@ function HomeScreen() {
 				variant={"outline"}
 				className={"w-1/2"}
 				onPress={() => {
-					router.push("/login");
+					router.push("/learn");
 					trigger("keyboardTap", HapticFeedbackOptions);
 				}}
 			>

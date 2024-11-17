@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Image, Pressable, View } from "react-native";
 import { trigger } from "react-native-haptic-feedback";
 import { HapticFeedbackOptions } from "~/lib/constants";
 import { type User, getCurrentUser } from "~/lib/db/users";
@@ -57,12 +57,14 @@ export default function ProfileUser() {
 						pressed && "opacity-70",
 					)}
 				>
-					{user ? (
-						<UserIcon
-							className="text-foreground"
-							size={23}
-							strokeWidth={1.25}
-						/>
+					{user?.avatar ? (
+						<View className="h-6 w-6 overflow-hidden rounded-full">
+							<Image
+								source={{ uri: user.avatar }}
+								className="h-full w-full"
+								alt="User avatar"
+							/>
+						</View>
 					) : (
 						<UserIcon
 							className="text-foreground"

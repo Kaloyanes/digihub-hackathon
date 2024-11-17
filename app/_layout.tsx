@@ -92,7 +92,7 @@ export default function RootLayout() {
 							}}
 						/>
 						<Stack.Screen
-							name="play"
+							name="play/index"
 							options={{
 								title: "Play",
 							}}
@@ -101,6 +101,18 @@ export default function RootLayout() {
 							name="play/select-difficulty"
 							options={{
 								title: "Select Difficulty",
+							}}
+						/>
+						<Stack.Screen
+							name="learn/index"
+							options={{
+								title: "Learn",
+							}}
+						/>
+						<Stack.Screen
+							name="learn/lesson"
+							options={{
+								title: "Lesson",
 							}}
 						/>
 					</Stack>

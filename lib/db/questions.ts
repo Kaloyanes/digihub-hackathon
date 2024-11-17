@@ -5,7 +5,6 @@ import {
   doc,
   getDoc,
   getDocs,
-  limit,
   query,
   where,
 } from "firebase/firestore";
@@ -21,7 +20,7 @@ const difficultyMultipliers: { [id: string]: number } = {
 
 const AnswerBasePoints = 50;
 
-type Question = {
+export type Question = {
   question: string;
   answer: string;
   possibleAnswers: string[];
@@ -48,15 +47,32 @@ const questionConverter: FirestoreDataConverter<Question> = {
   },
 };
 
-async function getQuestionsByDifficulty(difficuty: string, count: number) {
+function shuffle<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+async function getQuestionsByDifficulty(difficulty: string, count: number) {
+  console.log("Querying for difficulty:", difficulty); // Add debug log
   const q = query(
     collection(db, "questions").withConverter(questionConverter),
-    where("difficulty", "==", difficuty),
-    limit(count),
-  );
+    where("difficulty", "==", difficulty), // Add toLowerCase()
+  ).withConverter(questionConverter);
+  let questions: any;
+  try {
+    questions = await getDocs(q);
+  } catch (e: any) {
+    console.error(e.message);
+  }
+  console.log("Found questions:", questions.size); // Add debug log
 
-  const questions = await getDocs(q);
-  return questions.docs.values();
+  // Convert to array, shuffle, and limit to requested count
+  const shuffledDocs = shuffle(Array.from(questions.docs));
+  return shuffledDocs.slice(0, count);
 }
 
 async function checkAnswer(
@@ -74,15 +90,15 @@ async function checkAnswer(
     const addedXp = points * difficultyMultipliers[question.difficulty];
 
     let isCorrect = false;
-    if (question.difficulty === "Basic") {
-      // Use AI validation for basic difficulty
+    if (question.difficulty === "Advanced") {
       isCorrect = await validateAnswer(
         question.answer,
         input,
         question.question,
       );
+
+      console.log("Answer validation result from chatgpt:", isCorrect); // Add debug log
     } else {
-      // Use exact match for other difficulties
       isCorrect = question.answer === input;
     }
 
